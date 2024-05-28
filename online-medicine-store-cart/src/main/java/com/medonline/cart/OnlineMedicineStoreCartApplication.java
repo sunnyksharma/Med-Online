@@ -1,4 +1,4 @@
-package com.medonline.online_medicine_store_cart;
+package com.medonline.cart;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
