@@ -13,7 +13,7 @@ public class MapperUtils {
         CustomerCart entity = new CustomerCart();
         entity.setCustomerId(customerCartDTO.getCustomerId());
 //        entity.setCartId(customerCartDTO.getCartId());
-        entity.setQuantity(customerCartDTO.getQuantity());
+        entity.setQuantity(null!=customerCartDTO.getQuantity()? customerCartDTO.getQuantity() : 1);
         entity.setMedicineId(customerCartDTO.getMedicine().getMedicineId());
         return entity;
     }
