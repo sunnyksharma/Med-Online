@@ -5,8 +5,10 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.time.YearMonth;
@@ -15,6 +17,8 @@ import java.time.YearMonth;
 @Table(name = "Card")
 @Data
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class Card {
 
     @Id
@@ -29,4 +33,5 @@ public class Card {
 
     LocalDateTime lastUpdatedTime;
     Boolean enabled;
+
 }
