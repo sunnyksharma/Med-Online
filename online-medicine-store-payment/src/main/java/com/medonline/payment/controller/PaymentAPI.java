@@ -5,20 +5,25 @@ import com.medonline.payment.dto.PaymentDTO;
 import com.medonline.payment.exception.MedOnlinePaymentException;
 import com.medonline.payment.service.PaymentService;
 
+import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping(value = "/payment")
+@Slf4j
+@Validated
 public class PaymentAPI {
 
     @Autowired
     PaymentService paymentService;
 
     @PostMapping(value = "/amount/{amount}")
-    public ResponseEntity<Integer> makePayment(@RequestBody CardDTO cardDTO, @PathVariable Float amount) throws MedOnlinePaymentException {
+    public ResponseEntity<Integer> makePayment(@Valid @RequestBody CardDTO cardDTO, @PathVariable Float amount) throws MedOnlinePaymentException {
         return new ResponseEntity<>(paymentService.makePayment(cardDTO,amount), HttpStatus.ACCEPTED);
     }
 
@@ -33,7 +38,8 @@ public class PaymentAPI {
     }
 
     @PostMapping("/add-card")
-    public ResponseEntity<String> addCard(@RequestBody CardDTO cardDTO) throws MedOnlinePaymentException {
+    public ResponseEntity<String> addCard(@Valid @RequestBody CardDTO cardDTO) throws MedOnlinePaymentException {
+        log.info("Card adding request received" );
         paymentService.addCard(cardDTO);
         return new ResponseEntity<>("Card is added",HttpStatus.ACCEPTED);
     }
