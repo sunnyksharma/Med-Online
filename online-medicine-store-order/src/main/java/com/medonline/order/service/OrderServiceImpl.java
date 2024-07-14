@@ -77,7 +77,19 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public void cancelOrder(Integer orderId, String reason) {
+    public void cancelOrder(Integer orderId, String reason) throws MedOnlineException {
+        Order order = orderRepository.findById(orderId).orElseThrow(() -> new MedOnlineException("No ordered products found with this id"));
+        OrderStatus orderStatus = order.getOrderStatus();
+        if (orderStatus == OrderStatus.CANCELLED){
+            throw new MedOnlineException("order already cancelled");
+        }
+        if (orderStatus == OrderStatus.CONFIRMED || orderStatus == OrderStatus.COMPLETED)
+        {
+            throw new MedOnlineException("Order cannot be cancelled it is confirmed now");
+        }
+        order.setCancelReason(reason);
+        order.setDeliveryStatus(DeliveryStatus.CANCELLED);
+        orderRepository.save(order);
 
     }
 
