@@ -5,11 +5,13 @@ import com.medonline.payment.dto.PaymentDTO;
 import com.medonline.payment.entity.Card;
 import com.medonline.payment.entity.Payment;
 
+import java.time.LocalDateTime;
+
 public class MapperUtils {
 
     public static Card toEntity(CardDTO cardDTO){
         return Card.builder().cardId(cardDTO.getCardId()).cardType(cardDTO.getCardType()).nameOnCard(cardDTO.getNameOnCard())
-                .customerId(cardDTO.getCustomerId()).cvv(cardDTO.getCvv()).enabled(cardDTO.getEnabled()).build();
+                .customerId(cardDTO.getCustomerId()).cvv(cardDTO.getCvv()).enabled(true).lastUpdatedTime(LocalDateTime.now()).build();
     }
 
 

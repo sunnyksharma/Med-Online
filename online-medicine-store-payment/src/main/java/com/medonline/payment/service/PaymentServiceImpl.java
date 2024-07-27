@@ -54,6 +54,8 @@ public class PaymentServiceImpl implements PaymentService{
         return cards.stream().map(MapperUtils::toDto).toList();
     }
 
+
+
     @Override
     public PaymentDTO getPaymentDetails(Integer paymentId) throws MedOnlinePaymentException {
         Payment payment = paymentRepository.findById(paymentId).orElseThrow(()->new MedOnlinePaymentException("No such payment made"));

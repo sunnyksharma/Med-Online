@@ -5,9 +5,12 @@ import com.medonline.order.entity.Order;
 import com.medonline.order.exception.MedOnlineException;
 import com.medonline.order.repository.OrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.client.ServiceInstance;
+import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,6 +25,14 @@ public class OrderServiceImpl implements OrderService {
 
     @Autowired
     private Environment environment;
+
+    @Autowired
+    DiscoveryClient discoveryClient;
+
+    @Autowired
+    WebClient webClient;
+
+    ServiceInstance gatewayInstance = discoveryClient.getInstances("Medonline-Gateway").get(0);
 
     @Override
     public List<OrderDTO> viewOrders(Integer customerId) throws MedOnlineException {
@@ -41,17 +52,17 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public OrderDTO placeOrder(OrderDTO orderDTO) throws MedOnlineException {
         CustomerDTO customerRestResponse = restTemplate.getForObject(
-                environment.getProperty("CUSTOMER_BASE_URL") + orderDTO.getCustomerId(), CustomerDTO.class);
+                gatewayInstance.getUri() +"/customer/" + orderDTO.getCustomerId(), CustomerDTO.class);
         CardDTO cardRestResponse = restTemplate.getForObject(
-                environment.getProperty("CARD_BASE_URL") + orderDTO.getCardId(), CardDTO.class);
+                gatewayInstance.getUri()+"/card/" + orderDTO.getCardId(), CardDTO.class);
+        webClient.get().uri(gatewayInstance.getUri()+"/customer/"+orderDTO.getCustomerId()).retrieve().bodyToMono(CustomerDTO.class);
         CustomerCartDTO[] customerCartRestResponse = restTemplate.getForObject(
-                environment.getProperty("CART_BASE_URL") + orderDTO.getCustomerId(), CustomerCartDTO[].class);
+                gatewayInstance.getUri()+"/" + orderDTO.getCustomerId(), CustomerCartDTO[].class);
         assert customerCartRestResponse != null;
         double totalamount = 0D;
         for (CustomerCartDTO customerCart : customerCartRestResponse) {
             restTemplate.put(
-                    environment.getProperty(
-                            "MEDICINE_BASE_URL") + customerCart.getMedicine().getMedicineId() + "/quantity/" + customerCart.getQuantity(), Object.class);
+                    gatewayInstance.getUri()+"/" + customerCart.getMedicine().getMedicineId() + "/quantity/" + customerCart.getQuantity(), Object.class);
             OrderedMedicineDTO orderedMedicineDTO = new OrderedMedicineDTO();
             orderedMedicineDTO.setCustomerID(customerCart.getCustomerId());
             orderedMedicineDTO.setOrderedQuantity(customerCart.getQuantity());
@@ -59,19 +70,17 @@ public class OrderServiceImpl implements OrderService {
             double subtotal = (double) (customerCart.getQuantity() * customerCart.getMedicine().getPrice());
             orderedMedicineDTO.setOrderSubtotal(subtotal);
             restTemplate.postForObject(
-                    environment.getProperty(
-                            "ORDERED_MEDICINE_BASE_URL") + orderedMedicineDTO.getOrderedMedicineId(), orderedMedicineDTO, Object.class);
+                    gatewayInstance.getUri()+"/" + orderedMedicineDTO.getOrderedMedicineId(), orderedMedicineDTO, Object.class);
             totalamount += subtotal;
 
         }
         orderDTO.setOrderValueBeforeDiscount(totalamount);
         String message = restTemplate.postForObject(
-                environment.getProperty(
-                        "MAKE_PAYMENT") + orderDTO.getOrderValueBeforeDiscount(), cardRestResponse, String.class);
+                gatewayInstance.getUri()+"/" + orderDTO.getOrderValueBeforeDiscount(), cardRestResponse, String.class);
         orderDTO.setDeliveryStatus(DeliveryStatus.AWAITING_CONFIRMATION);
         orderDTO.setOrderStatus(OrderStatus.PROCESSING);
         orderRepository.save(OrderDTOtoEntity(orderDTO));
-        restTemplate.delete(environment.getProperty("CART_BASE_URL") + orderDTO.getCustomerId());
+        restTemplate.delete(gatewayInstance+"/" + orderDTO.getCustomerId());
 
         return orderDTO;
     }

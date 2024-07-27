@@ -1,0 +1,6 @@
+server:
+  port: ${PORT:0}
+spring:
+  config:
+    import:
+      - classpath:sr.yml

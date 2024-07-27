@@ -17,6 +17,8 @@ public class MapperUtils {
 
     public static MedicineDTO toDTO(Medicine source){
         MedicineDTO target = new MedicineDTO();
+        target.setMedicineId(source.getMedicineId());
+        target.setMedicineName(source.getMedicineName());
         target.setQuantity(source.getQuantity());
         target.setCategory(source.getCategory());
         target.setManufacturer(source.getManufacturer());

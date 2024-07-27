@@ -9,6 +9,8 @@ import com.medonline.cart.utils.MapperUtils;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.client.ServiceInstance;
+import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
@@ -21,6 +23,8 @@ public class CartServiceImpl implements CartService{
     @Autowired
     CustomerCartRepository repository;
 
+    @Autowired
+    DiscoveryClient discoveryClient;
 
     @Override
     public CustomerCart addMedicineToCart(CustomerCartDTO cartDTO, Integer customerId, Integer medicineId) throws MedOnlineCartException {
@@ -38,7 +42,9 @@ public class CartServiceImpl implements CartService{
     public List<CustomerCartDTO> viewCart(Integer customerId){
         //TODO: Authorisation: Check if user is loggedIn;
         //TODO: Medicine DTO should be fetched from Medicine MS using medicine Id;
-        return repository.findByCustomerId(customerId).stream().map(entity->MapperUtils.toCustomerCartDto(entity,new MedicineDTO())).toList();
+        ServiceInstance instance = discoveryClient.getInstances("online-medicine-store-medicine").get(0);
+        String url = instance.getUri().toString();
+        return repository.findByCustomerId(customerId).stream().map(entity->MapperUtils.toCustomerCartDto(entity,new MedicineDTO(),url)).toList();
     }
 
     public List<MedicineDTO> viewMedicinesInCart(Integer customerId){
