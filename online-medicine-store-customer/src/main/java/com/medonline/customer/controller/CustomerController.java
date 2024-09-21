@@ -74,11 +74,17 @@ public class CustomerController {
         }
     }
 
-    @PatchMapping("/change-password/{userName}/{password}")
+    @PatchMapping("/user-name/change-password/{userName}/{password}")
     public ResponseEntity<String> changePassword(@PathVariable String userName, @PathVariable String password){
 
         customerService.updatePassword(userName,password);
         return new ResponseEntity<>("Password Updated Successfully", HttpStatus.OK
         );
     }
+
+    @DeleteMapping("/admin")
+    public ResponseEntity<String> admin(){
+        return new ResponseEntity<>("This is Admin",HttpStatus.OK);
+    }
+
 }
